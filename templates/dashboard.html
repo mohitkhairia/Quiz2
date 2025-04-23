@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Salary by Department</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <canvas id="deptChart"></canvas>
+  <script>
+    fetch('/api/employees/avg-salary-by-dept/')
+      .then(r=>r.json())
+      .then(data=>{
+        const labels = data.map(d=>d.name);
+        const salaries = data.map(d=>d.avg_salary);
+        new Chart(document.getElementById('deptChart'), {
+          type: 'bar',
+          data: { labels, datasets: [{ label: 'Avg Salary', data: salaries }] },
+        });
+      });
+  </script>
+</body>
+</html>
