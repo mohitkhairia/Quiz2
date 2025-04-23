@@ -10,11 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from dotenv import load_dotenv
+import os
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -78,15 +81,26 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+def get_env_var(var_name):
+    try:
+        return os.environ[var_name]
+    except KeyError:
+        raise ImproperlyConfigured(f"Set the {var_name} environment variable")
+    
+SECRET_KEY = get_env_var('SECRET_KEY')
+DEBUG = get_env_var('DEBUG') == 'True'
+ALLOWED_HOSTS = get_env_var('ALLOWED_HOSTS').split(',')
 
 DATABASES = {
     'default': {
         'ENGINE':   'django.db.backends.postgresql',
-        'NAME':     'employee_dashboard',
-        'USER':     'mohitkhairia',
-        'PASSWORD': '',
-        'HOST':     'localhost',
-        'PORT':     '5432',
+        'NAME':     get_env_var('POSTGRES_DB'),
+        'USER':     get_env_var('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+        'HOST':     get_env_var('POSTGRES_HOST'),
+        'PORT':     get_env_var('POSTGRES_PORT'),
     }
 }
 
@@ -146,4 +160,12 @@ REST_FRAMEWORK = {
         'user': '100/min',
     },
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': 'rest_framework_simplejwt.authentication.JWTAuthentication',
 }
+
+# settings.py
+
+STATIC_URL = '/static/'
+
+# tell Django where collectstatic should deposit files
+STATIC_ROOT = BASE_DIR / 'staticfiles'

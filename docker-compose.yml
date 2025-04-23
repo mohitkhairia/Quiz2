@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_DB: employee_dashboard
+      POSTGRES_USER: mohitkhairia
+      # tell Postgres to allow trust auth instead of requiring a password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    restart: always
+    env_file:
+      - .env          # still pick up SECRET_KEY, DEBUG, ALLOWED_HOSTS, etc.
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

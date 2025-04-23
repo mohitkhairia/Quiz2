@@ -9,6 +9,8 @@ from .models import Department, Employee
 from .serializers import DepartmentSerializer, EmployeeSerializer
 from django.db.models import Avg
 from django.urls import path
+from django.http import JsonResponse
+from rest_framework.decorators import api_view
 
 class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()
@@ -26,7 +28,11 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     def avg_salary_by_dept(self, request):
         data = Department.objects.annotate(avg_salary=Avg('employees__salary')).values('name','avg_salary')
         return Response(data)
-    
+
+
+@api_view(['GET'])
+def health(request):
+    return JsonResponse({'status': 'ok'}, status=200)
 def dashboard(request):
     return render(request, 'dashboard.html')
 
